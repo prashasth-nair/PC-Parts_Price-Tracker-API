@@ -9,6 +9,7 @@
   },
   "author": "",
   "license": "ISC",
+  "engines": { "node": "20.x" },
   "dependencies": {
     "chrome-aws-lambda": "^10.1.0",
     "axios": "^1.6.8",
