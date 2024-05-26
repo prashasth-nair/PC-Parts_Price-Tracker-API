@@ -1,6 +1,5 @@
 let puppeteer;
 let chrome={};
-const e = require("express");
 let express = require("express");
 let options = {};
 let base_url;
