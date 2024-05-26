@@ -1,8 +1,19 @@
-let puppeteer = require("puppeteer");
+let puppeteer;
+let chrome={};
+const e = require("express");
 let express = require("express");
-var userAgent = require("user-agents");
-
+let options = {};
 let base_url;
+
+if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+  puppeteer = require("puppeteer-core");
+  chrome = require("chrome-aws-lambda");
+}else{
+  puppeteer = require("puppeteer");
+  
+}
+
+
 const categories = [
   "processor",
   "motherboard",
@@ -31,10 +42,21 @@ app.get("/categories", async (req, res) => {
 });
 // category of the product
 async function get_category(url) {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+    options = {
+      args:[...chrome.args, '--hide-scrollbars', '--disable-web-security'],
+      defaultViewport: chrome.defaultViewport,
+      executablePath: await chrome.executablePath,
+      headless: true,
+      ignoreHTTPSErrors: true,
+    };
+  }else{
+    options = {
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    };
+  }
+  const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
   // console.log(url);
   await page.setUserAgent(
@@ -78,10 +100,21 @@ async function get_category(url) {
 
 // product details
 async function get_product(url) {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+    options = {
+      args:[...chrome.args, '--hide-scrollbars', '--disable-web-security'],
+      defaultViewport: chrome.defaultViewport,
+      executablePath: await chrome.executablePath,
+      headless: true,
+      ignoreHTTPSErrors: true,
+    };
+  }else{
+    options = {
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    };
+  }
+  const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
   await page.setUserAgent(
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36"

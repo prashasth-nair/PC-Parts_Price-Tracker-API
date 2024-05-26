@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -11,8 +12,11 @@
   "dependencies": {
     "axios": "^1.6.8",
     "cheerio": "^1.0.0-rc.12",
+    "chrome-aws-lambda": "^10.1.0",
     "express": "^4.19.2",
-    "puppeteer": "^22.9.0",
-    "user-agents": "^1.1.197"
+    "puppeteer-core": "^6"
+  },
+  "devDependencies": {
+    "puppeteer": "^22.9.0"
   }
 }
