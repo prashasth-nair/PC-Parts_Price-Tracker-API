@@ -1,17 +1,13 @@
 let puppeteer;
-let chrome={};
+let chrome = {};
+const { executablePath } = require("chrome-aws-lambda");
 let express = require("express");
 let options = {};
 let base_url;
 
-if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-  puppeteer = require("puppeteer-core");
-  chrome = require("chrome-aws-lambda");
-}else{
-  puppeteer = require("puppeteer");
-  
-}
+require("dotenv").config();
 
+puppeteer = require("puppeteer");
 
 const categories = [
   "processor",
@@ -41,23 +37,17 @@ app.get("/categories", async (req, res) => {
 });
 // category of the product
 async function get_category(url) {
-  if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-    options = {
-      args:[...chrome.args, '--hide-scrollbars', '--disable-web-security'],
-      defaultViewport: chrome.defaultViewport,
-      executablePath: await chrome.executablePath,
-      headless: true,
-      ignoreHTTPSErrors: true,
-    };
-  }else{
-    options = {
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    };
-  }
+  options = {
+    headless: true,
+    executablePath:
+      process.env.NODE_ENV === "production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : puppeteer.executablePath(),
+    args: ["--no-sandbox", "--disable-setuid-sandbox","--single-process", "--no-zygote"],
+  };
+
   const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
-  // console.log(url);
   await page.setUserAgent(
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36"
   );
@@ -99,20 +89,14 @@ async function get_category(url) {
 
 // product details
 async function get_product(url) {
-  if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-    options = {
-      args:[...chrome.args, '--hide-scrollbars', '--disable-web-security'],
-      defaultViewport: chrome.defaultViewport,
-      executablePath: await chrome.executablePath,
-      headless: true,
-      ignoreHTTPSErrors: true,
-    };
-  }else{
-    options = {
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    };
-  }
+  options = {
+    headless: true,
+    executablePath:
+      process.env.NODE_ENV === "production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : puppeteer.executablePath(),
+    args: ["--no-sandbox", "--disable-setuid-sandbox","--single-process", "--no-zygote"],
+  };
   const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
   await page.setUserAgent(
