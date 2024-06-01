@@ -10,39 +10,46 @@ require("dotenv").config();
 puppeteer = require("puppeteer");
 
 const categories = [
-  "processor",
-  "motherboard",
-  "graphics-card",
-  "ram",
-  "power-supply",
-  "storage",
-  "case",
-  "cpu-cooler",
+  {
+    name: "storage",
+    img_src: "https://static.pcbuilder.net/assets/images/megamenu/storage.png",
+  },
+  {
+    name: "processor",
+    img_src:
+      "https://static.pcbuilder.net/assets/images/mega-menu/nav-processor.png",
+  },
+  {
+    name: "motherboard",
+    img_src:
+      "https://static.pcbuilder.net/assets/images/megamenu/motherboard.png",
+  },
+  {
+    name: "graphics-card",
+    img_src:
+      "https://static.pcbuilder.net/assets/images/megamenu/graphics-card.png",
+  },
+  {
+    name: "ram",
+    img_src: "https://static.pcbuilder.net/assets/images/megamenu/memory.png",
+  },
+  {
+    name: "power-supply",
+    img_src:
+      "https://static.pcbuilder.net/assets/images/megamenu/power-supply.png",
+  },
+  {
+    name: "case",
+    img_src: "https://static.pcbuilder.net/assets/images/megamenu/case.png",
+  },
+  {
+    name: "cpu-cooler",
+    img_src:
+      "https://static.pcbuilder.net/assets/images/megamenu/cpu-cooler.png",
+  },
 ];
 
 const app = express();
-
-// set middleware for CORS
-app.use((req, res, next) => {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "*"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS,CONNECT,TRACE"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Content-Type-Options, Accept, X-Requested-With, Origin, Access-Control-Request-Method, Access-Control-Request-Headers"
-  );
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  res.setHeader("Access-Control-Allow-Private-Network", true);
-  //  Firefox caps this at 24 hours (86400 seconds). Chromium (starting in v76) caps at 2 hours (7200 seconds). The default value is 5 seconds.
-  res.setHeader("Access-Control-Max-Age", 7200);
-
-  next();
-});
 app.get("/", (req, res) => {
   res.status(200).send({
     status: 200,
@@ -65,7 +72,12 @@ async function get_category(url) {
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
-    args: ["--no-sandbox", "--disable-setuid-sandbox","--single-process", "--no-zygote"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--single-process",
+      "--no-zygote",
+    ],
   };
 
   const browser = await puppeteer.launch(options);
@@ -117,7 +129,12 @@ async function get_product(url) {
       process.env.NODE_ENV === "production"
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
-    args: ["--no-sandbox", "--disable-setuid-sandbox","--single-process", "--no-zygote"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--single-process",
+      "--no-zygote",
+    ],
   };
   const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
@@ -222,12 +239,14 @@ app.get("/product/:category/:id", async (req, res) => {
 
 function categories_url() {
   var arr_json = [];
+  base_url = "https://pcbuilder.net/product/";
   let json = {};
   for (let i = 0; i < categories.length; i++) {
     json = {
       id: i + 1,
-      name: categories[i],
-      base_url: base_url + categories[i],
+      name: categories[i]["name"],
+      base_url: base_url + categories[i]["name"],
+      img_src: categories[i]["img_src"],
     };
     arr_json.push(json);
   }
