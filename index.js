@@ -1,6 +1,4 @@
 let puppeteer;
-let chrome = {};
-const { executablePath } = require("chrome-aws-lambda");
 let express = require("express");
 let options = {};
 let base_url;
@@ -50,26 +48,26 @@ const categories = [
 ];
 
 const app = express();
-app.use((req, res, next) => {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "*"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS,CONNECT,TRACE"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Content-Type-Options, Accept, X-Requested-With, Origin, Access-Control-Request-Method, Access-Control-Request-Headers"
-  );
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  res.setHeader("Access-Control-Allow-Private-Network", true);
-  //  Firefox caps this at 24 hours (86400 seconds). Chromium (starting in v76) caps at 2 hours (7200 seconds). The default value is 5 seconds.
-  res.setHeader("Access-Control-Max-Age", 7200);
+// app.use((req, res, next) => {
+//   res.setHeader(
+//     "Access-Control-Allow-Origin",
+//     "*"
+//   );
+//   res.setHeader(
+//     "Access-Control-Allow-Methods",
+//     "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS,CONNECT,TRACE"
+//   );
+//   res.setHeader(
+//     "Access-Control-Allow-Headers",
+//     "Content-Type, Authorization, X-Content-Type-Options, Accept, X-Requested-With, Origin, Access-Control-Request-Method, Access-Control-Request-Headers"
+//   );
+//   res.setHeader("Access-Control-Allow-Credentials", true);
+//   res.setHeader("Access-Control-Allow-Private-Network", true);
+//   //  Firefox caps this at 24 hours (86400 seconds). Chromium (starting in v76) caps at 2 hours (7200 seconds). The default value is 5 seconds.
+//   res.setHeader("Access-Control-Max-Age", 7200);
 
-  next();
-});
+//   next();
+// });
 app.get("/", (req, res) => {
   res.status(200).send({
     status: 200,
@@ -79,27 +77,20 @@ app.get("/", (req, res) => {
 
 app.get("/categories", async (req, res) => {
   try {
+  
     res.status(200).send(categories_url());
   } catch (error) {
     res.status(404).send(error);
   }
 });
 // category of the product
-async function get_category(url) {
+async function get_category(url,num) {
   options = {
     headless: true,
-    executablePath:
-      process.env.NODE_ENV === "production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--single-process",
-      "--no-zygote",
-    ],
   };
-
+  if (num === undefined) {
+    num = 30;
+  }
   const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
   await page.setUserAgent(
@@ -107,10 +98,15 @@ async function get_category(url) {
   );
 
   await page.goto(url, { waitUntil: "networkidle0" });
-  const data = await page.$$eval(".items", (elements) => {
-    let data = [];
 
-    for (let i = 0; i < elements.length; i++) {
+  // Pass num as an argument to the evaluate function to get the number of products
+  const data = await page.evaluate((num) => {
+    let data = [];
+    let elements = document.querySelectorAll(".items");
+    if (num > elements.length) {
+      num = elements.length;
+    }
+    for (let i = 0; i < num; i++) {
       let item_price = elements[i].querySelector(".price").textContent;
       // Ignore items with no price 'N/A'
       if (item_price.includes("N/A") == false) {
@@ -133,13 +129,14 @@ async function get_category(url) {
       }
     }
     return data;
-  });
-  // Length of the data array as first element
-  data.unshift({ length: data.length });
+  },num);
 
+    // Length of the data array as first element
+  data.unshift({ length: data.length });
   await browser.close();
   return data;
 }
+
 
 // product details
 async function get_product(url) {
@@ -235,8 +232,10 @@ app.get("/categories/:category", async (req, res) => {
   try {
     base_url = "https://pcbuilder.net/product/";
     let category = req.params.category;
+    let num = req.query.num;
+    
     let url = base_url + category;
-    let data = await get_category(url);
+    let data = await get_category(url,num);
     res.status(200).send(data);
   } catch (error) {
     res.status(404).send(error);
@@ -259,6 +258,7 @@ app.get("/product/:category/:id", async (req, res) => {
 
 function categories_url() {
   var arr_json = [];
+  
   base_url = "https://pcbuilder.net/product/";
   let json = {};
   for (let i = 0; i < categories.length; i++) {
