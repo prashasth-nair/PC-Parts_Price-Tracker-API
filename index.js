@@ -111,7 +111,10 @@ async function get_category(url,num) {
       // Ignore items with no price 'N/A'
       if (item_price.includes("N/A") == false) {
         let title = elements[i].querySelector(".table_title");
-        let item_logo = elements[i].querySelector(".item-logo");
+        let item_logo = elements[i].querySelector(".item-logo").querySelector("img").src;
+        if (item_logo === "https://static.pcbuilder.net/assets/images/blank.jpg") {
+          item_logo = elements[i].querySelector(".item-logo").querySelector("img").dataset.src;
+        }
         let brand = elements[i].querySelector(".f_brand");
         let model = elements[i].querySelector(".f_model");
         let buy = elements[i].querySelector(".component-btn");
@@ -119,7 +122,7 @@ async function get_category(url,num) {
           id: title.querySelector("a").href.split("/")[5],
           name: title.querySelector("a").textContent,
           src: title.querySelector("a").href,
-          img: item_logo.querySelector("img").src,
+          img: item_logo,
           price: item_price,
           brand: brand.textContent,
           model: model.textContent,
