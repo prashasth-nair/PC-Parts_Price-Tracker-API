@@ -16,6 +16,7 @@
     "axios": "^1.6.8",
     "cheerio": "^1.0.0-rc.12",
     "chrome-aws-lambda": "^10.1.0",
+    "clipboardy": "^4.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "puppeteer": "^22.9.0"
